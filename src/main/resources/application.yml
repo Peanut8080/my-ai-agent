@@ -3,7 +3,11 @@ spring:
     name: my-ai-agent
   profiles:
     active: local
-
+  ai:
+    dash scope:
+      chat:
+        options:
+          model: qwen-plus
 
 server:
   port: 8083
