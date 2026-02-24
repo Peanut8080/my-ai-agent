@@ -1,6 +1,7 @@
 package com.myaiagent.agent;
 
 import jakarta.annotation.Resource;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.chat.client.advisor.api.BaseChatMemoryAdvisor;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -31,5 +32,12 @@ class LoveAgentTest {
         result = loveAgent.doChat("我叫什么？", uuid);
 
 
+    }
+
+    @Test
+    void doChatWithResponse() {
+        String uuid = UUID.randomUUID().toString();
+        LoveAgent.LoverReport result = loveAgent.doChatWithResponse("我是杰瑞，我想让我的来一版更加喜欢我，但是我不知道该怎么办", uuid);
+        Assertions.assertNotNull(result);
     }
 }

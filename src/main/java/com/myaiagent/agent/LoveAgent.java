@@ -10,6 +10,8 @@ import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 /**
  * 恋爱助手智能体
  *
@@ -64,6 +66,30 @@ public class LoveAgent {
         String output = chatResponse.getResult().getOutput().getText();
         log.info("outPut:{}", output);
         return output;
+    }
+
+
+    record LoverReport(String title, List<String> suggestions) {
+
+    }
+
+    /**
+     * 结构化输出
+     *
+     * @param userMsg 用户信息
+     * @param chatId  聊天室id
+     * @return AI返回结果
+     */
+    public LoverReport doChatWithResponse(String userMsg, String chatId) {
+        LoverReport loverReport = chatClient.prompt()
+                .system(SYSTEM_PROMPT + "每次对话后都要生成恋爱报，标题为：{用户名}的恋爱报告，内容为建议列表")
+                .user(userMsg)
+                .advisors(spec -> spec.param(ChatMemory.CONVERSATION_ID, chatId))
+                .call()
+                .entity(LoverReport.class);
+        assert loverReport != null;
+        log.info("loverReport:{}", loverReport);
+        return loverReport;
     }
 }
 
