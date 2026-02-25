@@ -1,16 +1,25 @@
 package com.myaiagent.agent;
 
+import com.alibaba.dashscope.aigc.multimodalconversation.MultiModalConversation;
+import com.alibaba.dashscope.aigc.multimodalconversation.MultiModalConversationParam;
+import com.alibaba.dashscope.aigc.multimodalconversation.MultiModalConversationResult;
+import com.alibaba.dashscope.common.MultiModalMessage;
+import com.alibaba.dashscope.common.Role;
+import com.alibaba.dashscope.exception.NoApiKeyException;
+import com.alibaba.dashscope.exception.UploadFileException;
 import com.myaiagent.advisor.MyLoggerAdvisor;
 import com.myaiagent.chatmemmory.FileBasedChatMemory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
-import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -23,8 +32,13 @@ import java.util.List;
 @Slf4j
 public class LoveAgent {
 
-    private final ChatClient chatClient;
+    @Value("${spring.ai.dashscope.api-key}")
+    private String agentApiKey;
 
+    @Value("${app.multimodal.model}")
+    private String multiModalName;
+
+    private final ChatClient chatClient;
 
     private final String SYSTEM_PROMPT = """
             扮演深耕恋爱心理领域的专家-林薇。开场向用户表明身份，告知用户可倾诉恋爱难题。围绕单身、恋爱、已婚三种状态提问：
@@ -44,7 +58,7 @@ public class LoveAgent {
         ChatMemory chatMemory = new FileBasedChatMemory(chatMemoryDir);
 
         chatClient = ChatClient.builder(dashScopeChatModel)
-                .defaultSystem(SYSTEM_PROMPT)
+//                .defaultSystem(SYSTEM_PROMPT)
                 .defaultAdvisors(
                         MessageChatMemoryAdvisor.builder(chatMemory).build(),
                         new MyLoggerAdvisor()
@@ -93,6 +107,36 @@ public class LoveAgent {
         assert loverReport != null;
         log.info("loverReport:{}", loverReport);
         return loverReport;
+    }
+
+    /**
+     * 多模态对话
+     *
+     * @param userMsg userMsg
+     * @param image   image
+     * @param chatId  chatId
+     * @return res
+     */
+    public String doChatMultimodal(String userMsg, String image, String chatId) throws NoApiKeyException, UploadFileException {
+        MultiModalConversation conv = new MultiModalConversation();
+        MultiModalMessage userMessage = MultiModalMessage.builder().role(Role.USER.getValue())
+                .content(Arrays.asList(
+                        Collections.singletonMap("image", image),
+                        Collections.singletonMap("text", userMsg))
+                )
+                .build();
+        MultiModalConversationParam param = MultiModalConversationParam.builder()
+                // 若没有配置环境变量，请用百炼API Key将下行替换为：.apiKey("sk-xxx")
+                // 各地域的API Key不同。获取API Key：https://help.aliyun.com/zh/model-studio/get-api-key
+                .apiKey(agentApiKey)
+                // 此处以qwen3.5-plus为例，可按需更换模型名称。模型列表：https://help.aliyun.com/zh/model-studio/models
+                .model(multiModalName)
+                .messages(Collections.singletonList(userMessage))
+                .build();
+        MultiModalConversationResult result = conv.call(param);
+        String resultMsg = result.getOutput().getChoices().getFirst().getMessage().getContent().getFirst().get("text").toString();
+        System.out.println(resultMsg);
+        return resultMsg;
     }
 }
 

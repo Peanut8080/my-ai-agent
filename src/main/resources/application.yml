@@ -4,10 +4,16 @@ spring:
   profiles:
     active: local
   ai:
-    dash scope:
+    dashscope:
       chat:
         options:
           model: qwen-plus
+app:
+  multimodal:
+    model: qwen3.5-plus
+    # 可选：扩展其他配置
+    enabled: true
+    timeout: 60s
 
 server:
   port: 8083
