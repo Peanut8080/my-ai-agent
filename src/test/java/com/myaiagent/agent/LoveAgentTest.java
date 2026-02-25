@@ -3,12 +3,9 @@ package com.myaiagent.agent;
 import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.springframework.ai.chat.client.advisor.api.BaseChatMemoryAdvisor;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  *
