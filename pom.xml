@@ -97,6 +97,13 @@
             <version>5.6.2</version>
         </dependency>
 
+        <!-- 文档加载器的版本号要与spring-ai-alibaba-starter-dashscope保持一致，Spring AI 1.x 与 2.x 之间存在 Breaking Change -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-markdown-document-reader</artifactId>
+            <version>1.1.2</version>
+        </dependency>
+
     </dependencies>
 
     <build>
