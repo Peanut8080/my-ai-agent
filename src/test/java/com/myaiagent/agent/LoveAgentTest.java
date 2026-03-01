@@ -31,7 +31,9 @@ class LoveAgentTest {
     @Test
     void doChat() {
         String uuid = UUID.randomUUID().toString();
-        String result = loveAgent.doChat("你是哪个版本呢？", uuid);
+//        String result = loveAgent.doChat("我目前没有交到对象，社交上有点问题，你能给我推荐几个课程嘛？", uuid);
+        String result = loveAgent.doChat("我想要找一个性格温柔、阳光、顾家、可以提供权限价值的另一半，有合适的人选嘛？", uuid);
+        System.out.println(result);
 
 //        String result = loveAgent.doChat("我是汤姆猫", uuid);
 //

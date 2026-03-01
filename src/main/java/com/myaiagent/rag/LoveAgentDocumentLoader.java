@@ -1,4 +1,4 @@
-package com.myaiagent.rag.loader;
+package com.myaiagent.rag;
 
 import com.myaiagent.exception.BusinessException;
 import lombok.extern.slf4j.Slf4j;

@@ -1,5 +1,6 @@
 package com.myaiagent.rag.loader;
 
+import com.myaiagent.rag.LoveAgentDocumentLoader;
 import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

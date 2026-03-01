@@ -9,12 +9,16 @@ import com.alibaba.dashscope.exception.NoApiKeyException;
 import com.alibaba.dashscope.exception.UploadFileException;
 import com.myaiagent.advisor.MyLoggerAdvisor;
 import com.myaiagent.chatmemmory.FileBasedChatMemory;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
+import org.springframework.ai.chat.client.advisor.api.Advisor;
+import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -38,6 +42,12 @@ public class LoveAgent {
     @Value("${app.multimodal.model}")
     private String multiModalName;
 
+    @Resource
+    private VectorStore loveAgentVectorStore;
+
+    @Resource
+    private Advisor loveRagCloudAdvisor;
+
     private final ChatClient chatClient;
 
     private final String SYSTEM_PROMPT = """
@@ -49,7 +59,7 @@ public class LoveAgent {
     /**
      * 构造智能体
      *
-     * @param dashScopeChatModel 阿里另积对话大模型
+     * @param dashScopeChatModel 阿里灵积对话大模型
      */
     public LoveAgent(ChatModel dashScopeChatModel) {
 
@@ -58,7 +68,7 @@ public class LoveAgent {
         ChatMemory chatMemory = new FileBasedChatMemory(chatMemoryDir);
 
         chatClient = ChatClient.builder(dashScopeChatModel)
-//                .defaultSystem(SYSTEM_PROMPT)
+                .defaultSystem(SYSTEM_PROMPT)
                 .defaultAdvisors(
                         MessageChatMemoryAdvisor.builder(chatMemory).build(),
                         new MyLoggerAdvisor()
@@ -77,6 +87,10 @@ public class LoveAgent {
         ChatResponse chatResponse = chatClient.prompt()
                 .user(userMsg)
                 .advisors(spec -> spec.param(ChatMemory.CONVERSATION_ID, chatId))
+                // 调用本地 RAG
+//                .advisors(QuestionAnswerAdvisor.builder(loveAgentVectorStore).build())
+                // 调用云端 RAG
+                .advisors(loveRagCloudAdvisor)
                 .call()
                 .chatResponse();
         assert chatResponse != null;
