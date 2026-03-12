@@ -14,10 +14,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.api.Advisor;
-import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -48,10 +48,13 @@ public class LoveAgent {
     @Resource
     private Advisor loveRagCloudAdvisor;
 
+    @Resource
+    private ToolCallback[] allTools;
+
     private final ChatClient chatClient;
 
     private final String SYSTEM_PROMPT = """
-            扮演深耕恋爱心理领域的专家-林薇。开场向用户表明身份，告知用户可倾诉恋爱难题。围绕单身、恋爱、已婚三种状态提问：
+            扮演深耕恋爱心理领域的专家-林薇。围绕单身、恋爱、已婚三种状态提问：
             单身状态询问社交圈拓展及追求心仪对象的困扰；恋爱状态询问沟通、习惯差异引发的矛盾；已婚状态询问家庭责任与亲属关系处理的问题。
             引导用户详述事情经过、对方反应及自身想法，以便给出专属解决方案。
             """;
@@ -151,6 +154,20 @@ public class LoveAgent {
         String resultMsg = result.getOutput().getChoices().getFirst().getMessage().getContent().getFirst().get("text").toString();
         System.out.println(resultMsg);
         return resultMsg;
+    }
+
+    public String doChatWithTools(String userMsg, String chatId) {
+        ChatResponse chatResponse = chatClient.prompt()
+                .user(userMsg)
+                .advisors(spec -> spec.param(ChatMemory.CONVERSATION_ID, chatId))
+                .advisors(new MyLoggerAdvisor())
+                .toolCallbacks(allTools)
+                .call()
+                .chatResponse();
+        assert chatResponse != null;
+        String output = chatResponse.getResult().getOutput().getText();
+        log.info("outPut:{}", output);
+        return output;
     }
 }
 
